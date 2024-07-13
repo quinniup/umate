@@ -1,0 +1,12 @@
+[package]
+name = "dart-ffi"
+version = "0.1.0"
+authors = ["G.T <howzequinn@gmail.com>"]
+edition = "2018"
+
+[lib]
+name = "dartffi"
+crate-type = ["staticlib", "cdylib"]
+
+[dependencies]
+cbindgen = "0.17.0"
