@@ -1,5 +1,5 @@
 [package]
-name = "dart-ffi"
+name = "dartffi"
 version = "0.1.0"
 authors = ["G.T <howzequinn@gmail.com>"]
 edition = "2018"
