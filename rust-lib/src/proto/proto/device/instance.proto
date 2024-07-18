@@ -1,124 +1,64 @@
 syntax = "proto3";
 
-package com.changyuan.feilun.iotcore.client.grpc;
+package com.device.client.grpc;
 import "google/protobuf/wrappers.proto";
 import "google/protobuf/struct.proto";
 
 option java_multiple_files = true;
-option java_package = "com.changyuan.feilun.iotcore.client.grpc.device";
+option java_package = "com.java.device";
 option java_outer_classname = "DeviceInstanceProto";
 
 // 设备实例接口定义
 service DeviceInstanceService {
+  rpc GetById (DeviceIdRequest) returns (DeviceResponse) {}
 
-  rpc GetById (DeviceIdRequest) returns (DeviceResponse) {
-  }
-
-  rpc Create(DeviceInstanceCreatePB) returns (google.protobuf.StringValue) {
-
-  }
+  rpc Create(DeviceInstanceCreatePB) returns (google.protobuf.StringValue) {}
 }
 
 
 
 message DeviceIdRequest {
-    string deviceId = 1;
-    google.protobuf.Int64Value realmId = 2;
-    bool withProductInfo = 3;
-    bool withProperties = 4;
-    bool withPropertiesSourceTime = 5;                  //是否附带查询设备影子
-    bool withMergedExtendProperties = 6;                //当为true时会merge产品默认值，否则只有设备覆盖产品的值
-    repeated string spaceId = 7;
-  }
+  string deviceId = 1;
+}
   
 
-  message DeviceResponse {
-    string id = 1;
-    string name = 2;                                    //设备实例名称
-    string describe = 3;                                //说明
-    int64 realmId = 4;                                  //产品ID
-    int64 assetId = 5;                                  //产品ID
-    string productId = 6;                               //产品ID
-    string productName = 7;                             //产品名称
-    google.protobuf.Struct configuration = 8;
-    string state = 9;                                   //状态
-    string creatorId = 10;                              //创建者ID
-    int64 createTime = 11;
-    int64 registryTime = 12;                            //激活时间
-    string parentId = 13;                               //父级设备ID
-    string deviceSn = 14;                               //父级设备ID
-    string nodeId = 15;                                 //第三方设备ID
-    string batchId = 16;                                //批次id
-    string deriveMetadata = 17;                         //派生(独立)物模型
-    DeviceProductResponse deviceProduct = 18;           //设备产品 withProductInfo为true时有值
-    string firmwareVersion = 21;
-    string spaceId = 22;
-    map<string, DeviceFirmwareVersionPB> firmwareVersions = 23;
-    map<string, google.protobuf.Value> extendProperties = 24;          //拓展属性
-    int64 lastOnlineTime = 25;                           // 最近一次上线时间
-    google.protobuf.Int32Value instanceType = 26;        //设备实例类型
-  }
+message DeviceResponse {
+  string id = 1;
+  string name = 2;                                   
+  string describe = 3;                                
+  int64 realmId = 4;                                 
+  int64 assetId = 5;                                  
+  string productId = 6;                               
+  string productName = 7;                             
+  string parentId = 13;                               
+  string deviceSn = 14;                               
+  string nodeId = 15;                                
+  google.protobuf.Int32Value instanceType = 26;       
+}
 
 
-  message DeviceProductResponse {
-    string id = 1;
-    string name = 2;
-    google.protobuf.Struct metadata = 3;                                    //物模型定义
-    string photoUrl = 6;
-    int32 state = 9;
-    string deviceType = 10;
-    string describe = 11;
-    string modelId = 12;                                                    //型号ID
-    string productSecret = 18;                                              //产品secret，用于一型一密激活
-    string spaceId = 19;
-    google.protobuf.StringValue extendMetadata = 20;
-    string connMode = 22;                                                   //联网方式 WIFI/3G/4G/5G
-    string classifiedName = 23;
-    int64 gmtCreate = 24;
-    int64 gmtModified = 25;
-    string createdBy = 26;
-    string lastModifiedBy = 27;
-    string categoryCode = 28;                                               //品类重构后品类code，代替classifiedId
-    string categoryName = 30;
-    repeated string supportedChildProtocol = 33;                            //支持的子设备接入协议，表示网关设备支持的南向协议，一个网关可支持多个南向协议
-    string protocolType = 34;                                               //传输协议类型，若设备为非子设备则可选项有MQTT、HTTP、COAP、TCP等 若为子设备，则可选项有Zigbee、Wi-Sun、Lora、RS485等
-    string protocolCode = 35;                                               //消息协议编号，如 精简MQTT， 标准MQTT，定制MQTT协议， 属于传输协议下的另一个变化维度
-    string protocolCodecId = 17;                                            //消息格式编解码器
-  
-    //-------------以下字段将逐步废弃，请使用上述字段替代-------------------
-    google.protobuf.Struct configuration = 4 [deprecated = true];           //注意：该字段已废弃 2023年11月06日15:56:27
-    string messageProtocol = 5 [deprecated = true];                         //注意：该字段已废弃 ，已使用 protocolCodecId 字段代替，2023年11月06日15:56:27
-    string classifiedId = 7 [deprecated = true];                            //注意：该字段已废弃，请使用 categoryCode 字段
-    string transportProtocol = 8  [deprecated = true];                      //注意：该字段已废弃 请使用 transmissionProtocol代替 2023年11月06日15:56:27
-    string transmissionProtocol = 31;                                       //注意：该字段已废弃 已改名 请使用protocolType
-    string messagingProtocol = 32;                                          //注意：该字段已废弃 已改名 请使用ProtocolCode 消息协议 (新)
-    string creatorId = 15  [deprecated = true];                             //注意：该字段已废弃 已使用 createdBy 代替 2023年11月06日15:56:27
-    int64 createTime = 16  [deprecated = true];                             //注意：该字段已废弃 已使用 gmtCreate 代替 2023年11月06日15:56:27
-    string accessGatewayProtocol = 29 [deprecated = true];                  //注意：该字段已废弃 接入网关协议，表示网关设备支持的南向协议，因为该字段是仅支持单个，请使用supportedChildProtocols字段，
-  }
+message DeviceProductResponse {
+  string id = 1;
+  string name = 2;
+  google.protobuf.Struct metadata = 3;                                    
+  string photoUrl = 6;
+  int32 state = 9;
+  string deviceType = 10;
+  string describe = 11;
+  string modelId = 12;    
+}
     
-  message DeviceFirmwareVersionPB {
-    int64 version = 1;
-    string firmwareType = 3;
-  }
-
-
-  message DeviceInstanceCreatePB {
-    string spaceId = 1;
-    string productId = 2;
-    string  deviceSn = 3;
-    google.protobuf.StringValue id = 4;
-    google.protobuf.StringValue name = 5;                                    //设备实例名称
-    google.protobuf.StringValue describe = 6;                                //说明
-    google.protobuf.Int64Value realmId = 7;                                  //产品ID
-    google.protobuf.Int64Value assetId = 8;                                  //产品ID
-    google.protobuf.Struct configuration = 9;
-    google.protobuf.StringValue parentId = 10;                               //父级设备ID
-    google.protobuf.StringValue  nodeId = 11;                                //第三方设备ID
-    google.protobuf.StringValue  batchId = 12;                               //批次id
-    map<string, google.protobuf.Value> extendProperties = 13;                //扩展信息
-    google.protobuf.Int32Value instanceType = 14;                            //设备实例类型
-  }
+ 
+message DeviceInstanceCreatePB {
+  string spaceId = 1;
+  string productId = 2;
+  string  deviceSn = 3;
+  google.protobuf.StringValue  describe = 4;
+  google.protobuf.StringValue name = 5;                                    
+  google.protobuf.StringValue parentId = 10;                              
+  google.protobuf.StringValue  nodeId = 11;                               
+  google.protobuf.Int32Value instanceType = 14;                          
+}
   
 
 

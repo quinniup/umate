@@ -13,6 +13,8 @@ prost-wkt.workspace = true
 prost-wkt-types.workspace = true
 once_cell.workspace = true
 tokio.workspace = true
+csv.workspace = true
+rust-crypto.workspace = true
 
 [build-dependencies]
 tonic-build = { version = "0.12.0", features = ["prost"] }
