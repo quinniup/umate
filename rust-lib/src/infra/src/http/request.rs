@@ -1,4 +1,5 @@
 use base64::prelude::*;
+use csv::Error;
 use http_body_util::BodyExt;
 use hyper::{header, Request};
 use hyper_util::rt::TokioIo;
@@ -25,7 +26,7 @@ async fn test_tdengine_data() {
         }
     });
     let authority = url.authority().unwrap().clone();
-    let sql = "select `_ts`, `realm_device_id`, last(`ZigbeeInfo`) from `history_shadow_sDGdsfRp5crmJ6CF` where _ts > 1721438883000 group by `realm_device_id` limit 500".to_string();
+    let sql = "select `_ts`, `realm_device_id`, last(`ZigbeeInfo`) from `history_shadow_xmkc8tdmb5xacpvj` where _ts > 1721093283000 group by `realm_device_id` limit 500".to_string();
 
     let auth_token = BASE64_STANDARD.encode(b"root:hXuGapRcWj4tODOl");
     // Create an HTTP request with an empty body and a HOST header
@@ -58,22 +59,51 @@ async fn test_tdengine_data() {
     // println!("TDResult::data {:#?}", td_result.data);
     println!("TDResult::rows {}", td_result.rows);
 
-    let dev_ids = td_result
+    let mut dev_infos: Vec<DeviceInfo> = Vec::new();
+    td_result
         .data
         .iter()
         .map(|row| {
             let zigbee_info = row[2].clone();
-            let decode_hex = BASE64_STANDARD.decode(zigbee_info).unwrap();
-            if hex::encode(decode_hex).contains(r"0844") {
+            let decode_hex = BASE64_STANDARD.decode(zigbee_info.clone()).unwrap();
+            let hex_str = hex::encode(decode_hex.clone());
+            if hex_str.contains(r"0844") || hex_str.contains(r"4408") {
                 println!("Found 0x0844, device_id = {}", row[1].clone());
-                return Ok(row);
             }
-            return Err("Not found 0x0844");
+            return DeviceInfo::new(row[1].clone(), zigbee_info.clone(), hex_str);
         })
-        .filter(|row| row.is_ok())
-        .map(|row| row.unwrap()[1].clone())
-        .collect::<String>();
-    println!("PanId is 0x0844 of device ids: {:?}", dev_ids)
+        .for_each(|row| {
+            dev_infos.push(row);
+        });
+    // println!("PanId is 0x0844 of device ids: {:?}", dev_infos);
+    _ = write_device_info_csv(dev_infos);
+}
+
+pub fn write_device_info_csv(recodes: Vec<DeviceInfo>) -> Result<(), Error> {
+    let path = "/Users/gongtai/csv/device_zigbee_info.csv";
+    let mut wtr = csv::Writer::from_path(path).unwrap();
+    for r in recodes {
+        wtr.serialize(r)?;
+    }
+    wtr.flush().unwrap();
+    Ok(())
+}
+
+#[derive(serde::Deserialize, serde::Serialize, Debug)]
+struct DeviceInfo {
+    device_id: String,
+    zigbee_info: String,
+    pan_id: String,
+}
+
+impl DeviceInfo {
+    fn new(device_id: String, zigbee_info: String, pan_id: String) -> Self {
+        Self {
+            device_id,
+            zigbee_info,
+            pan_id,
+        }
+    }
 }
 
 #[derive(serde::Deserialize, serde::Serialize, Debug)]
