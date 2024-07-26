@@ -4,7 +4,8 @@ use std::io::BufReader;
 use serde::{Deserialize, Serialize};
 use csv::Error;
 
-#[derive(Deserialize, Debug)]
+#[allow(dead_code)]
+#[derive(Deserialize)]
 pub struct GatewayRecord {
     pub name: String,
     pub node_id: String,
@@ -13,6 +14,7 @@ pub struct GatewayRecord {
 
 
 
+#[allow(dead_code)]
 pub fn read_gateway_csv() -> Result<Vec<GatewayRecord>, Error> {
     let path = "/Users/gongtai/csv/gateway.csv";
     let input = File::open(path).unwrap();
@@ -26,6 +28,7 @@ pub fn read_gateway_csv() -> Result<Vec<GatewayRecord>, Error> {
     Ok(records)
 }
 
+#[allow(dead_code)]
 #[derive(Deserialize, Debug)]
 pub struct EmsDeviceRecord {
     pub parent_node_id: String,
@@ -37,6 +40,7 @@ pub struct EmsDeviceRecord {
     pub product_id: String,
 }
 
+#[allow(dead_code)]
 pub fn read_ems_csv() -> Result<Vec<EmsDeviceRecord>, Error> {
     let path = "/Users/gongtai/csv/ems_devices.csv";
     let input = File::open(path).unwrap();
@@ -67,11 +71,11 @@ pub struct GatewayMQTTRecord {
 
 #[derive(Deserialize, Serialize, Debug, Clone)]
 pub struct Configuration {
-    pub secureId: String,
-    pub secureKey: String
+    pub secure_id: String,
+    pub secure_key: String
 }
 
-
+#[allow(dead_code)]
 pub fn read_gateway_mqtt_csv() -> Result<Vec<GatewayMQTTRecord>, Error> {
     let path = "/Users/gongtai/csv/dbdev_device_instance.csv";
     let input = File::open(path).unwrap();
@@ -86,6 +90,7 @@ pub fn read_gateway_mqtt_csv() -> Result<Vec<GatewayMQTTRecord>, Error> {
 }
 
 
+#[allow(dead_code)]
 pub fn write_gateway_mqtt_csv(recodes: Vec<GatewayMQTTRecord>) -> Result<(), Error> {
     let path = "/Users/gongtai/csv/dbdev_device_instance_cp.csv";
     let mut wtr = csv::Writer::from_path(path).unwrap();

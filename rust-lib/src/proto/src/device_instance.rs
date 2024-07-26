@@ -2,6 +2,7 @@ use com::device::client::grpc::device_instance_service_client::DeviceInstanceSer
 use com::device::client::grpc::DeviceInstanceCreatePb;
 use google::protobuf::{Int32Value, StringValue};
 
+#[allow(unused_imports)]
 use crate::csv_file;
 
 pub mod google {
@@ -28,6 +29,7 @@ async fn connect() -> DeviceInstanceServiceClient<tonic::transport::Channel> {
     DeviceInstanceServiceClient::new(channel)
 }
 
+#[allow(dead_code)]
 async fn create_device_instance(ins: DeviceCreate) -> Result<String, Box<dyn std::error::Error>> {
     let mut req_msg = DeviceInstanceCreatePb::default();
     req_msg.name = Option::Some(StringValue { value: ins.name });
@@ -51,6 +53,7 @@ async fn create_device_instance(ins: DeviceCreate) -> Result<String, Box<dyn std
     Ok(response.into_inner().value)
 }
 
+#[allow(dead_code)]
 #[derive(Debug, Clone)]
 struct DeviceCreate {
     name: String,

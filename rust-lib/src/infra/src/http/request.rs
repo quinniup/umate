@@ -1,23 +1,28 @@
-use base64::prelude::*;
-use csv::Error;
-use http_body_util::BodyExt;
-use hyper::{header, Request};
-use hyper_util::rt::TokioIo;
-use std::io::Read;
-use tokio::net::TcpStream;
+use std::fs::OpenOptions;
+use std::io::*;
+
+
+#[allow(unused_imports)]
+use base64::prelude::BASE64_STANDARD;
+#[allow(unused_imports)]
+use base64::Engine;
+#[allow(unused_imports)]
+use http_body_util::BodyExt as _;
 
 #[tokio::test]
 async fn test_tdengine_data() {
-    // Parse our URL...
-    let url = "http://localhost:6041/rest/sql/iot_core"
+    // Prod
+    let url = "http://120.79.245.26:6041/rest/sql/iot_core?tz=Asia/Shanghai&"
+        // DevTest
+        // let url = "http://localhost:6041/rest/sql/iot_test"
         .parse::<hyper::Uri>()
         .unwrap();
 
     let host = url.host().expect("uri has no host");
     let port = url.port_u16().unwrap_or(80);
     let addr = format!("{}:{}", host, port);
-    let stream = TcpStream::connect(addr).await.unwrap();
-    let io = TokioIo::new(stream);
+    let stream = tokio::net::TcpStream::connect(addr).await.unwrap();
+    let io = hyper_util::rt::TokioIo::new(stream);
 
     let (mut sender, conn) = hyper::client::conn::http1::handshake(io).await.unwrap();
     tokio::task::spawn(async move {
@@ -26,13 +31,21 @@ async fn test_tdengine_data() {
         }
     });
     let authority = url.authority().unwrap().clone();
-    let sql = "select `_ts`, `realm_device_id`, last(`ZigbeeInfo`) from `history_shadow_xmkc8tdmb5xacpvj` where _ts > 1721093283000 group by `realm_device_id` limit 500".to_string();
+    let sql = "select `_ts`, `realm_device_id`, last(`ZigbeeInfo`) from `history_shadow_5zziqzrzlra91pbe` where `ZigbeeInfo` is not null group by `realm_device_id` limit 1".to_string();
 
+    // EU Prod
+    // let auth_token = BASE64_STANDARD.encode(b"root:w2kPev5VGVnFYJgw");
+    // CN Prod
     let auth_token = BASE64_STANDARD.encode(b"root:hXuGapRcWj4tODOl");
+    // DevTest
+    // let auth_token = BASE64_STANDARD.encode(b"root:taosdata");
     // Create an HTTP request with an empty body and a HOST header
-    let req = Request::post(url)
+    let req = hyper::Request::post(url)
         .header(hyper::header::HOST, authority.as_str())
-        .header(header::AUTHORIZATION, format!("Basic {}", auth_token))
+        .header(
+            hyper::header::AUTHORIZATION,
+            format!("Basic {}", auth_token),
+        )
         //.header(header::CONTENT_TYPE, "application/json")
         .body(sql)
         .unwrap();
@@ -65,23 +78,37 @@ async fn test_tdengine_data() {
         .iter()
         .map(|row| {
             let zigbee_info = row[2].clone();
-            let decode_hex = BASE64_STANDARD.decode(zigbee_info.clone()).unwrap();
-            let hex_str = hex::encode(decode_hex.clone());
-            if hex_str.contains(r"0844") || hex_str.contains(r"4408") {
-                println!("Found 0x0844, device_id = {}", row[1].clone());
+            let decode_hex = BASE64_STANDARD.decode(zigbee_info.clone());
+            if decode_hex.is_ok() {
+                let hex_str = hex::encode(decode_hex.unwrap().clone());
+                if hex_str.contains(r"0844") || hex_str.contains(r"4408") {
+                    println!("Found 0x0844, device_id = {}", row[1].clone());
+                    return Ok(DeviceInfo::new(
+                        row[1].clone(),
+                        zigbee_info.clone(),
+                        hex_str,
+                    ));
+                }
             }
-            return DeviceInfo::new(row[1].clone(), zigbee_info.clone(), hex_str);
+            Err(DeviceInfo::new(row[1].clone(), zigbee_info, "".to_string()))
         })
+        .filter(|row| row.is_ok())
         .for_each(|row| {
-            dev_infos.push(row);
+            dev_infos.push(row.unwrap());
         });
     // println!("PanId is 0x0844 of device ids: {:?}", dev_infos);
     _ = write_device_info_csv(dev_infos);
 }
 
-pub fn write_device_info_csv(recodes: Vec<DeviceInfo>) -> Result<(), Error> {
-    let path = "/Users/gongtai/csv/device_zigbee_info.csv";
-    let mut wtr = csv::Writer::from_path(path).unwrap();
+#[allow(dead_code)]
+pub fn write_device_info_csv(recodes: Vec<DeviceInfo>) -> Result<()> {
+    let writer = OpenOptions::new()
+        .write(true)
+        .create(true)
+        .truncate(true)
+        .open("/Users/gongtai/csv/device_zigbee_info.csv")
+        .unwrap();
+    let mut wtr = csv::Writer::from_writer(writer);
     for r in recodes {
         wtr.serialize(r)?;
     }
@@ -90,13 +117,14 @@ pub fn write_device_info_csv(recodes: Vec<DeviceInfo>) -> Result<(), Error> {
 }
 
 #[derive(serde::Deserialize, serde::Serialize, Debug)]
-struct DeviceInfo {
+pub struct DeviceInfo {
     device_id: String,
     zigbee_info: String,
     pan_id: String,
 }
 
 impl DeviceInfo {
+    #[allow(dead_code)]
     fn new(device_id: String, zigbee_info: String, pan_id: String) -> Self {
         Self {
             device_id,
@@ -107,12 +135,14 @@ impl DeviceInfo {
 }
 
 #[derive(serde::Deserialize, serde::Serialize, Debug)]
+#[allow(dead_code)]
 struct ColumnMeta {
     name: String,
     data_type: String,
     length: i32,
 }
 
+#[allow(dead_code)]
 #[derive(serde::Deserialize, serde::Serialize)]
 struct TDResult {
     code: i32,
@@ -133,6 +163,7 @@ impl Default for TDResult {
 }
 
 impl TDResult {
+    #[allow(dead_code)]
     fn from_bytes(bytes: Vec<u8>) -> Self {
         let s = String::from_utf8(bytes).unwrap();
         println!("Response body: {}", s);
