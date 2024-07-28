@@ -17,3 +17,6 @@ serde.workspace = true
 serde_json.workspace = true
 hex = "0.4.3"
 csv.workspace = true
+actix-web.workspace = true
+env_logger.workspace = true
+log.workspace = true
