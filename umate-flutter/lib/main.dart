@@ -33,6 +33,8 @@ class UMateAPP extends HookConsumerWidget {
         ),
         routerConfig: router,
         actions: {
+          ...WidgetsApp.defaultActions,
+          NavigationIntent: NavigationAction(),
           HomeTabIntent: HomeTabAction(),
         });
   }
