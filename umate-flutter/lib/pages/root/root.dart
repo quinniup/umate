@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
-import 'package:umate/pages/home/home.dart';
 import 'package:umate/pages/root/sidebar.dart';
 import 'package:umate/utils/platform.dart';
+import 'package:umate/welcome.dart';
 
 class RootApp extends HookConsumerWidget {
   final Widget child;
@@ -19,7 +19,7 @@ class RootApp extends HookConsumerWidget {
       onWillPop: () async {
         final routerState = GoRouterState.of(context);
         if (routerState.matchedLocation != "/") {
-          context.goNamed(HomePage.name);
+          context.goNamed(WelcomePage.name);
           return false;
         }
         return true;
@@ -31,14 +31,14 @@ class RootApp extends HookConsumerWidget {
         endDrawer: kIsDesktop
             ? Container(
                 constraints: const BoxConstraints(maxWidth: 800),
-                decoration: BoxDecoration(),
+                decoration: const BoxDecoration(),
                 margin: const EdgeInsets.only(
                   top: 40,
                   bottom: 100,
                 ),
               )
             : null,
-        bottomNavigationBar: Column(
+        bottomNavigationBar: const Column(
           mainAxisSize: MainAxisSize.min,
           children: [],
         ),

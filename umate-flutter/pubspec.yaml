@@ -46,6 +46,9 @@ dependencies:
   flutter_riverpod: ^2.5.1
   window_manager: ^0.3.9
   sidebarx: ^0.17.1
+  flutter_gen: any
+  flutter_hooks: any
+  collection: any
 dev_dependencies:
   build_runner: ^2.4.9
   flutter_gen_runner: ^5.4.0

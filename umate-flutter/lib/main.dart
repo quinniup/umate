@@ -35,7 +35,7 @@ class UMateAPP extends HookConsumerWidget {
         actions: {
           ...WidgetsApp.defaultActions,
           NavigationIntent: NavigationAction(),
-          HomeTabIntent: HomeTabAction(),
+          //HomeTabIntent: HomeTabAction(),
         });
   }
 }

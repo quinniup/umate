@@ -7,6 +7,7 @@ import 'package:umate/pages/home/home.dart';
 import 'package:umate/pages/pulsar/pulsar.dart';
 import 'package:umate/pages/root/root.dart';
 import 'package:umate/pages/totp/authenticator.dart';
+import 'package:umate/welcome.dart';
 
 final rootNavigatorKey = Catcher2.navigatorKey;
 final shellRouteNavigatorKey = GlobalKey<NavigatorState>();
@@ -20,10 +21,16 @@ final routerProvider = Provider((ref) {
         routes: [
           GoRoute(
               path: "/",
-              name: HomePage.name,
+              name: WelcomePage.name,
               pageBuilder: (context, state) =>
-                  const UmatePage(child: HomePage()),
+                  const UmatePage(child: WelcomePage()),
               routes: [
+                GoRoute(
+                  path: "home",
+                  name: HomePage.name,
+                  pageBuilder: (context, state) =>
+                      const UmatePage(child: HomePage()),
+                ),
                 GoRoute(
                   path: "pulsar",
                   name: PulsarPage.name,
